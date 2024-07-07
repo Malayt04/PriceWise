@@ -1,7 +1,7 @@
 import request from 'request-promise'
 import cheerio from 'cheerio'; 
 import { extractPrice, extractCurrency, extractDescription } from '../utils';
-import { Console } from 'console';
+
 export async function scrapeAmazonProduct(url:string){
     if(!url) return;
 
@@ -38,26 +38,32 @@ export async function scrapeAmazonProduct(url:string){
                 $('.a-size-base.a-color-price'),
               );
 
-              const stock = $('#availability span').text().trim().toLowerCase();
-              const image = $('#landingImage').attr('data-a-dynamic-image')||'{}';
-              const imageurl = Object.keys(JSON.parse(image));
+              const outOfStock = $('#availability span').text().trim().toLowerCase() === 'currently unavailable';
+              const img = $('#landingImage').attr('data-a-dynamic-image')||'{}';
+              const image = Object.keys(JSON.parse(img));
               const currency = extractCurrency($('.a-price-symbol'));
               const discountPercent =$('.savingsPercentage').text().replace(/[-%]/g, "");
               const description = extractDescription($);
 
+
               const parsedData = {
+                title,
                 url,
                 currency,
-                stock,
+                isOutOfStock:outOfStock,
                 originalPrice:Number(originalPrice),
                 currentPrice:Number(currentPrice),
                 priceHistory: [],
-                discountPercent: Number(discountPercent),
-                imageurl:imageurl[0],
+                discountRate: Number(discountPercent),
+                image:image[0],
                 description,
                 lowestPrice: Number(currentPrice) || Number(originalPrice),
                 highestPrice: Number(originalPrice) || Number(currentPrice),
                 averagePrice: Number(currentPrice) || Number(originalPrice),
+                category: 'category',
+                reviewsCount:100,
+                stars: 4.5,
+
               }
 
               return parsedData;
