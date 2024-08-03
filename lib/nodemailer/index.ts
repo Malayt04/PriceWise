@@ -15,7 +15,6 @@ export async function generateEmailBody(
   type: NotificationType
   ) {
   const THRESHOLD_PERCENTAGE = 40;
-  // Shorten the product title
   const shortenedTitle =
     product.title.length > 20
       ? `${product.title.substring(0, 20)}...`
@@ -81,15 +80,13 @@ export async function generateEmailBody(
 }
 
 const transporter = nodemailer.createTransport({
-  pool: true,
   service: 'gmail',
-  port: 2525,
   auth: {
     user: 'malayt04@gmail.com',
     pass: process.env.EMAIL_PASSWORD,
   },
   maxConnections: 1
-})
+});
 
 export const sendEmail = async (emailContent: EmailContent, sendTo: string[]) => {
   const mailOptions = {
@@ -97,11 +94,12 @@ export const sendEmail = async (emailContent: EmailContent, sendTo: string[]) =>
     to: sendTo,
     html: emailContent.body,
     subject: emailContent.subject,
-  }
+  };
 
-  transporter.sendMail(mailOptions, (error: any, info: any) => {
-    if(error) return console.log(error);
-    
-    console.log('Email sent: ', info);
-  })
+  try {
+    const info = await transporter.sendMail(mailOptions);
+    console.log('Email sent: ', info.response);
+  } catch (error) {
+    console.error('Error sending email: ', error);
+  }
 }
